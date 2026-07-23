@@ -1,12 +1,5 @@
 package com.example.arduinomonitor.data
 
-/**
- * یک نمونه داده دریافتی از آردوینو.
- * فرمت مورد انتظار از سمت آردوینو (هر خط، پایان با \n):
- *   value1,value2,value3
- * مثال: "23.5,60.2,1"  -> دما، رطوبت، وضعیت رله/LED
- * در صورت نیاز به تعداد بیشتر یا کمتر مقدار، فقط کافیست پارسر را در BluetoothService تغییر دهید.
- */
 data class SensorSample(
     val timestampMs: Long,
     val values: List<Float>
@@ -19,15 +12,21 @@ enum class ConnectionState {
     FAILED
 }
 
-/**
- * دستوراتی که از طریق منوی تنظیمات به آردوینو ارسال می‌شوند.
- * در کد آردوینوی نمونه (arduino_sketch.ino) این رشته‌ها هندل شده‌اند.
- */
 object ArduinoCommands {
-    const val LED_ON = "LED_ON"
-    const val LED_OFF = "LED_OFF"
-    const val SAVE_ON = "SAVE_ON"     // فعال کردن ذخیره‌سازی لحظه‌ای در حافظه آردوینو (مثلا SD Card)
+    const val RELAY1_ON = "RELAY1_ON"
+    const val RELAY1_OFF = "RELAY1_OFF"
+    const val RELAY2_ON = "RELAY2_ON"
+    const val RELAY2_OFF = "RELAY2_OFF"
+    const val RELAY3_ON = "RELAY3_ON"
+    const val RELAY3_OFF = "RELAY3_OFF"
+    const val RELAY4_ON = "RELAY4_ON"
+    const val RELAY4_OFF = "RELAY4_OFF"
+    const val SAVE_ON = "SAVE_ON"
     const val SAVE_OFF = "SAVE_OFF"
-    const val STREAM_ON = "STREAM_ON"   // شروع ارسال مداوم داده
-    const val STREAM_OFF = "STREAM_OFF" // توقف ارسال داده
+    const val STREAM_ON = "STREAM_ON"
+    const val STREAM_OFF = "STREAM_OFF"
+
+    val RELAY_ON = listOf(RELAY1_ON, RELAY2_ON, RELAY3_ON, RELAY4_ON)
+    val RELAY_OFF = listOf(RELAY1_OFF, RELAY2_OFF, RELAY3_OFF, RELAY4_OFF)
+    val RELAY_NAMES = listOf("رله یک", "رله دو", "رله سه", "رله چهار")
 }
