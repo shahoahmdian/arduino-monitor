@@ -20,13 +20,16 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.example.arduinomonitor.ui.screens.AboutScreen
 import com.example.arduinomonitor.ui.screens.DashboardScreen
 import com.example.arduinomonitor.ui.screens.DeviceListScreen
 import com.example.arduinomonitor.ui.screens.SettingsScreen
+import com.example.arduinomonitor.ui.screens.SplashScreen
 import com.example.arduinomonitor.ui.theme.ArduinoMonitorTheme
 import com.example.arduinomonitor.viewmodel.AppViewModel
+import kotlinx.coroutines.delay
 
-private enum class Screen { DEVICE_LIST, DASHBOARD, SETTINGS }
+private enum class Screen { SPLASH, DEVICE_LIST, DASHBOARD, SETTINGS, ABOUT }
 
 class MainActivity : ComponentActivity() {
 
@@ -67,14 +70,17 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             ArduinoMonitorTheme {
-                var screen by remember { mutableStateOf(Screen.DEVICE_LIST) }
+                var screen by remember { mutableStateOf(Screen.SPLASH) }
                 var permissionsGranted by remember { mutableStateOf(hasPermissions()) }
                 val snackbarHostState = remember { SnackbarHostState() }
                 val uiState by viewModel.uiState.collectAsState()
 
-                // بررسی مجدد مجوزها هر بار که صفحه دوباره فوکوس می‌گیرد
                 LaunchedEffect(Unit) {
                     permissionsGranted = hasPermissions()
+                    delay(2500)
+                    if (screen == Screen.SPLASH) {
+                        screen = Screen.DEVICE_LIST
+                    }
                 }
 
                 LaunchedEffect(uiState.connectionState) {
@@ -95,6 +101,7 @@ class MainActivity : ComponentActivity() {
                     snackbarHost = { SnackbarHost(snackbarHostState) }
                 ) { padding ->
                     when (screen) {
+                        Screen.SPLASH -> SplashScreen()
                         Screen.DEVICE_LIST -> DeviceListScreen(
                             devices = if (permissionsGranted) viewModel.pairedDevices() else emptyList(),
                             bluetoothEnabled = viewModel.bluetoothEnabled,
@@ -119,13 +126,17 @@ class MainActivity : ComponentActivity() {
                         Screen.SETTINGS -> SettingsScreen(
                             state = uiState,
                             onBack = { screen = Screen.DASHBOARD },
-                            onToggleLed = viewModel::toggleLed,
+                            onToggleRelay = viewModel::toggleRelay,
                             onToggleInstantSave = viewModel::toggleInstantSave,
                             onSendCustomCommand = viewModel::sendRawCommand,
                             onDisconnect = {
                                 viewModel.disconnect()
                                 screen = Screen.DEVICE_LIST
-                            }
+                            },
+                            onOpenAbout = { screen = Screen.ABOUT }
+                        )
+                        Screen.ABOUT -> AboutScreen(
+                            onBack = { screen = Screen.SETTINGS }
                         )
                     }
                 }
