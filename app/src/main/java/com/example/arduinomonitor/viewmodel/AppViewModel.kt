@@ -19,7 +19,7 @@ data class UiState(
     val channelStats: List<ChannelStats> = emptyList(),
     val chartSeries: List<List<Float>> = emptyList(),
     val lastError: String? = null,
-    val ledOn: Boolean = false,
+    val relayStates: List<Boolean> = List(4) { false },
     val instantSaveOn: Boolean = false,
     val samplesReceived: Long = 0L,
     val connectedDeviceName: String? = null
@@ -86,9 +86,13 @@ class AppViewModel(
         _uiState.value = _uiState.value.copy(connectedDeviceName = null)
     }
 
-    fun toggleLed(turnOn: Boolean) {
-        bluetoothService?.sendCommand(if (turnOn) ArduinoCommands.LED_ON else ArduinoCommands.LED_OFF)
-        _uiState.value = _uiState.value.copy(ledOn = turnOn)
+    fun toggleRelay(index: Int, turnOn: Boolean) {
+        if (index !in ArduinoCommands.RELAY_ON.indices) return
+        val command = if (turnOn) ArduinoCommands.RELAY_ON[index] else ArduinoCommands.RELAY_OFF[index]
+        bluetoothService?.sendCommand(command)
+        val updated = _uiState.value.relayStates.toMutableList()
+        updated[index] = turnOn
+        _uiState.value = _uiState.value.copy(relayStates = updated)
     }
 
     fun toggleInstantSave(turnOn: Boolean) {
