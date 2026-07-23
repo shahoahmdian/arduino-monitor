@@ -1,12 +1,15 @@
 package com.example.arduinomonitor.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.BluetoothDisabled
-import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Power
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.arduinomonitor.data.ArduinoCommands
 import com.example.arduinomonitor.ui.theme.*
 import com.example.arduinomonitor.viewmodel.UiState
 
@@ -21,10 +25,11 @@ import com.example.arduinomonitor.viewmodel.UiState
 fun SettingsScreen(
     state: UiState,
     onBack: () -> Unit,
-    onToggleLed: (Boolean) -> Unit,
+    onToggleRelay: (Int, Boolean) -> Unit,
     onToggleInstantSave: (Boolean) -> Unit,
     onSendCustomCommand: (String) -> Unit,
-    onDisconnect: () -> Unit
+    onDisconnect: () -> Unit,
+    onOpenAbout: () -> Unit
 ) {
     var customCommand by remember { mutableStateOf("") }
 
@@ -43,16 +48,22 @@ fun SettingsScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        SettingCard(
-            icon = Icons.Filled.Lightbulb,
-            iconTint = AccentAmber,
-            title = "کنترل LED / رله آردوینو",
-            description = "روشن یا خاموش کردن خروجی متصل به آردوینو",
-            checked = state.ledOn,
-            onCheckedChange = onToggleLed
-        )
+        Text("کنترل رله‌ها", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Spacer(Modifier.height(8.dp))
 
-        Spacer(Modifier.height(12.dp))
+        ArduinoCommands.RELAY_NAMES.forEachIndexed { index, name ->
+            SettingCard(
+                icon = Icons.Filled.Power,
+                iconTint = relayColors[index % relayColors.size],
+                title = name,
+                description = "روشن یا خاموش کردن خروجی ${name} روی آردوینو",
+                checked = state.relayStates.getOrElse(index) { false },
+                onCheckedChange = { onToggleRelay(index, it) }
+            )
+            Spacer(Modifier.height(10.dp))
+        }
+
+        Spacer(Modifier.height(6.dp))
 
         SettingCard(
             icon = Icons.Filled.Save,
@@ -100,6 +111,31 @@ fun SettingsScreen(
             }
         }
 
+        Spacer(Modifier.height(16.dp))
+
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = CardDark),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onOpenAbout() }
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Filled.Info, contentDescription = null, tint = AccentCyan, modifier = Modifier.size(26.dp))
+                Spacer(Modifier.width(14.dp))
+                Text(
+                    "درباره سازنده و ارتباط با ما",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = TextSecondary)
+            }
+        }
+
         Spacer(Modifier.weight(1f))
 
         OutlinedButton(
@@ -113,6 +149,8 @@ fun SettingsScreen(
         }
     }
 }
+
+private val relayColors = listOf(AccentAmber, AccentCyan, AccentPurple, SuccessGreen)
 
 @Composable
 private fun SettingCard(
